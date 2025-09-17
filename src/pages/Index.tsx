@@ -1,288 +1,241 @@
-import React, { useState, useMemo } from 'react';
-import { Star } from 'lucide-react';
+import React, { useState } from 'react';
+import { HelpCircle, Eye, EyeOff, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Header } from '@/components/Header';
-import { CategoryFilter } from '@/components/CategoryFilter';
-import { ProductCard, Product } from '@/components/ProductCard';
-import { Cart, CartItem } from '@/components/Cart';
-import { Auth } from '@/components/Auth';
-import { Profile } from '@/components/Profile';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import heroBackground from '@/assets/hero-background.jpg';
-import trufflesImg from '@/assets/truffles.jpg';
-import gummyBearsImg from '@/assets/gummy-bears.jpg';
-import macaronsImg from '@/assets/macarons.jpg';
-import brigadeirosImg from '@/assets/brigadeiros.jpg';
+import logo from '@/assets/logo.png';
 
 const Index = () => {
   const { toast } = useToast();
-  
-  // State management
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeCategory, setActiveCategory] = useState('Todos');
-  const [isCartOpen, setIsCartOpen] = useState(false);
-  const [isAuthOpen, setIsAuthOpen] = useState(false);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [products, setProducts] = useState<Product[]>([
-    {
-      id: '1',
-      name: 'Trufas Gourmet',
-      description: 'Deliciosas trufas artesanais com recheios especiais',
-      price: 24.90,
-      image: trufflesImg,
-      category: 'Chocolates',
-      rating: 4.8,
-      isFavorite: false
-    },
-    {
-      id: '2',
-      name: 'Gominhas Coloridas',
-      description: 'Gomas de frutas em formato de ursinhos, sabores variados',
-      price: 12.50,
-      image: gummyBearsImg,
-      category: 'Gomas',
-      rating: 4.6,
-      isFavorite: false
-    },
-    {
-      id: '3',
-      name: 'Macarons Franceses',
-      description: 'Autênticos macarons franceses com sabores únicos',
-      price: 32.90,
-      image: macaronsImg,
-      category: 'Biscoitos',
-      rating: 4.9,
-      isFavorite: false
-    },
-    {
-      id: '4',
-      name: 'Brigadeiros Gourmet',
-      description: 'Brigadeiros artesanais com coberturas especiais',
-      price: 18.90,
-      image: brigadeirosImg,
-      category: 'Doces Brasileiros',
-      rating: 4.7,
-      isFavorite: false
-    }
-  ]);
+  const [isLogin, setIsLogin] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
 
-  const categories = ['Todos', 'Chocolates', 'Gomas', 'Biscoitos', 'Doces Brasileiros', 'Balas'];
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: ''
+  });
 
-  // Computed values
-  const cartItemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-  const favoriteCount = products.filter(p => p.isFavorite).length;
-
-  const filteredProducts = useMemo(() => {
-    let filtered = products;
-
-    // Filter by category
-    if (activeCategory !== 'Todos') {
-      filtered = filtered.filter(product => product.category === activeCategory);
-    }
-
-    // Filter by search query
-    if (searchQuery) {
-      filtered = filtered.filter(product =>
-        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.description.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    return filtered;
-  }, [products, activeCategory, searchQuery]);
-
-  // Event handlers
-  const handleAddToCart = (product: Product) => {
-    setCartItems(prev => {
-      const existingItem = prev.find(item => item.id === product.id);
-      
-      if (existingItem) {
-        return prev.map(item =>
-          item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        );
-      } else {
-        return [...prev, {
-          id: product.id,
-          name: product.name,
-          price: product.price,
-          quantity: 1,
-          image: product.image
-        }];
-      }
-    });
-
-    toast({
-      title: "Produto adicionado!",
-      description: `${product.name} foi adicionado ao seu carrinho.`,
-    });
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }));
   };
 
-  const handleUpdateQuantity = (id: string, quantity: number) => {
-    if (quantity === 0) {
-      handleRemoveItem(id);
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Simple form validation
+    if (!isLogin && formData.password !== formData.confirmPassword) {
+      toast({
+        title: "Erro",
+        description: "As senhas não coincidem.",
+        variant: "destructive",
+      });
       return;
     }
 
-    setCartItems(prev =>
-      prev.map(item =>
-        item.id === id ? { ...item, quantity } : item
-      )
-    );
-  };
-
-  const handleRemoveItem = (id: string) => {
-    setCartItems(prev => prev.filter(item => item.id !== id));
+    // Simulate login/register success
+    toast({
+      title: isLogin ? "Login realizado!" : "Conta criada!",
+      description: isLogin 
+        ? "Bem-vindo(a) de volta à Doces da Ana!" 
+        : "Sua conta foi criada com sucesso!",
+    });
     
-    toast({
-      title: "Produto removido",
-      description: "Item removido do carrinho.",
-    });
-  };
-
-  const handleToggleFavorite = (productId: string) => {
-    setProducts(prev =>
-      prev.map(product =>
-        product.id === productId
-          ? { ...product, isFavorite: !product.isFavorite }
-          : product
-      )
-    );
-
-    const product = products.find(p => p.id === productId);
-    if (product) {
-      toast({
-        title: product.isFavorite ? "Removido dos favoritos" : "Adicionado aos favoritos",
-        description: `${product.name} ${product.isFavorite ? 'foi removido dos' : 'foi adicionado aos'} seus favoritos.`,
-      });
-    }
-  };
-
-  const handleLogout = () => {
-    setIsProfileOpen(false);
-    toast({
-      title: "Logout realizado",
-      description: "Você foi desconectado com sucesso.",
-    });
+    // Redirect to shop after 1 second
+    setTimeout(() => {
+      window.location.href = '/loja';
+    }, 1000);
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <Header
-        onCartOpen={() => setIsCartOpen(true)}
-        onLoginOpen={() => setIsAuthOpen(true)}
-        onProfileOpen={() => setIsProfileOpen(true)}
-        cartItemCount={cartItemCount}
-        favoriteCount={favoriteCount}
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-      />
+    <div className="min-h-screen bg-gradient-auth flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Background decorations */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute top-20 left-20 w-32 h-32 bg-white rounded-full animate-pulse"></div>
+        <div className="absolute bottom-32 right-20 w-24 h-24 bg-white rounded-full animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 right-32 w-20 h-20 bg-white rounded-full animate-pulse delay-2000"></div>
+        <div className="absolute bottom-20 left-32 w-16 h-16 bg-white rounded-full animate-pulse delay-500"></div>
+        <div className="absolute top-32 left-1/2 w-12 h-12 bg-white rounded-full animate-pulse delay-1500"></div>
+      </div>
 
-      {/* Hero Section */}
-      <section 
-        className="relative h-96 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url(${heroBackground})` }}
-      >
-        <div className="absolute inset-0 bg-black/40"></div>
-        <div className="relative z-10 flex items-center justify-center h-full text-center text-white">
-          <div className="max-w-2xl px-4">
-            <h1 className="text-5xl font-bold mb-4">Mundo dos Doces</h1>
-            <p className="text-xl mb-8 text-white/90">
-              Os melhores doces artesanais do Brasil
-            </p>
-            <Button 
-              variant="hero" 
-              size="xl"
-              onClick={() => document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' })}
+      <Card className="w-full max-w-md bg-background/95 backdrop-blur shadow-soft border-0 relative z-10">
+        <CardHeader className="text-center pb-4">
+          <div className="mx-auto mb-4">
+            <img src={logo} alt="Doces da Ana" className="h-20 w-20 mx-auto" />
+          </div>
+          <h1 className="text-3xl font-bold bg-gradient-button bg-clip-text text-transparent">
+            Doces da Ana
+          </h1>
+          <p className="text-muted-foreground">
+            {isLogin 
+              ? 'Entre na sua conta e descubra um mundo de doces' 
+              : 'Crie sua conta e comece a explorar nossos doces'
+            }
+          </p>
+        </CardHeader>
+
+        <CardContent className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {!isLogin && (
+              <div className="space-y-2">
+                <Label htmlFor="name">Nome completo</Label>
+                <Input
+                  id="name"
+                  name="name"
+                  placeholder="Seu nome"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  required={!isLogin}
+                  className="bg-accent/30 border-accent focus:border-secondary"
+                />
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                placeholder="seu@email.com"
+                value={formData.email}
+                onChange={handleInputChange}
+                required
+                className="bg-accent/30 border-accent focus:border-secondary"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="password">Senha</Label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  required
+                  className="bg-accent/30 border-accent focus:border-secondary pr-10"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+              </div>
+            </div>
+
+            {!isLogin && (
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirmar senha</Label>
+                <div className="relative">
+                  <Input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    value={formData.confirmPassword}
+                    onChange={handleInputChange}
+                    required={!isLogin}
+                    className="bg-accent/30 border-accent focus:border-secondary pr-10"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  >
+                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            <Button type="submit" variant="sweet" size="lg" className="w-full">
+              <Heart className="h-4 w-4 mr-2" />
+              {isLogin ? 'Entrar na Doces da Ana' : 'Criar Conta Grátis'}
+            </Button>
+          </form>
+
+          <div className="text-center">
+            <span className="text-muted-foreground">
+              {isLogin ? 'Primeira vez aqui? ' : 'Já tem uma conta? '}
+            </span>
+            <Button
+              variant="link"
+              className="p-0 h-auto text-secondary font-medium"
+              onClick={() => {
+                setIsLogin(!isLogin);
+                setFormData({ name: '', email: '', password: '', confirmPassword: '' });
+              }}
             >
-              <Star className="h-5 w-5 mr-2" />
-              Explorar Produtos
+              {isLogin ? 'Criar conta grátis' : 'Fazer login'}
             </Button>
           </div>
-        </div>
-      </section>
 
-      {/* Category Filter */}
-      <CategoryFilter
-        categories={categories}
-        activeCategory={activeCategory}
-        onCategoryChange={setActiveCategory}
-      />
-
-      {/* Products Section */}
-      <section id="products" className="py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-8">
-            <h2 className="text-3xl font-bold text-center mb-2">
-              Nossos Produtos
-            </h2>
-            <p className="text-muted-foreground text-center">
-              {searchQuery ? (
-                `${filteredProducts.length} resultado${filteredProducts.length !== 1 ? 's' : ''} para "${searchQuery}"`
-              ) : (
-                `Descubra nossa seleção de doces artesanais`
-              )}
-            </p>
-          </div>
-
-          {filteredProducts.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredProducts.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  onAddToCart={handleAddToCart}
-                  onToggleFavorite={handleToggleFavorite}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <p className="text-lg text-muted-foreground mb-4">
-                Nenhum produto encontrado
-              </p>
-              <Button variant="sweet" onClick={() => {
-                setSearchQuery('');
-                setActiveCategory('Todos');
-              }}>
-                Ver todos os produtos
+          {isLogin && (
+            <>
+              <Separator />
+              <Button
+                variant="ghost"
+                className="w-full text-muted-foreground hover:text-secondary"
+                onClick={() => setShowHelp(true)}
+              >
+                <HelpCircle className="h-4 w-4 mr-2" />
+                Precisa de ajuda?
               </Button>
-            </div>
+            </>
           )}
-        </div>
-      </section>
+        </CardContent>
+      </Card>
 
-      {/* Footer */}
-      <footer className="bg-muted py-8 mt-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-muted-foreground">
-            © 2024 Doces da Ana. Todos os direitos reservados.
-          </p>
-        </div>
-      </footer>
+      {/* Help Dialog */}
+      <Dialog open={showHelp} onOpenChange={setShowHelp}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-secondary">Como podemos ajudar?</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <h4 className="font-semibold mb-2">Problemas para entrar?</h4>
+              <p className="text-sm text-muted-foreground">
+                Verifique se seu email e senha estão corretos. Se esqueceu sua senha, entre em contato conosco.
+              </p>
+            </div>
 
-      {/* Modals */}
-      <Cart
-        isOpen={isCartOpen}
-        onClose={() => setIsCartOpen(false)}
-        items={cartItems}
-        onUpdateQuantity={handleUpdateQuantity}
-        onRemoveItem={handleRemoveItem}
-      />
+            <div>
+              <h4 className="font-semibold mb-2">Criar nova conta</h4>
+              <p className="text-sm text-muted-foreground">
+                Clique em "Criar conta grátis" para se registrar e começar a comprar nossos deliciosos doces!
+              </p>
+            </div>
 
-      <Auth
-        isOpen={isAuthOpen}
-        onClose={() => setIsAuthOpen(false)}
-      />
-
-      <Profile
-        isOpen={isProfileOpen}
-        onClose={() => setIsProfileOpen(false)}
-        onLogout={handleLogout}
-      />
+            <div>
+              <h4 className="font-semibold mb-2">Suporte</h4>
+              <p className="text-sm text-muted-foreground">
+                Email: ajuda@docesdaana.com.br<br />
+                WhatsApp: (11) 99999-9999
+              </p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
