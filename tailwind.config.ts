@@ -57,6 +57,25 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        // Sweet candy theme colors
+        sweet: {
+          pink: "hsl(var(--sweet-pink))",
+          blue: "hsl(var(--sweet-blue))",
+          purple: "hsl(var(--sweet-purple))",
+          orange: "hsl(var(--sweet-orange))",
+          green: "hsl(var(--sweet-green))",
+        },
+      },
+      backgroundImage: {
+        'gradient-hero': 'var(--gradient-hero)',
+        'gradient-card': 'var(--gradient-card)',
+        'gradient-button': 'var(--gradient-button)',
+        'gradient-auth': 'var(--gradient-auth)',
+      },
+      boxShadow: {
+        'soft': 'var(--shadow-soft)',
+        'card': 'var(--shadow-card)',
+        'button': 'var(--shadow-button)',
       },
       borderRadius: {
         lg: "var(--radius)",
