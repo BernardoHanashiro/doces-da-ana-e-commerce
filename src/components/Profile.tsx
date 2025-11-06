@@ -230,21 +230,14 @@ export function Profile({ isOpen, onClose, onLogout }: ProfileProps) {
                   <CardTitle className="text-lg">Produtos Favoritos</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-4">
                     {mockFavorites.map((product) => (
-                      <div key={product.id} className="flex items-center space-x-3 p-3 border rounded-lg bg-gradient-card">
-                        <img 
-                          src={product.image} 
-                          alt={product.name}
-                          className="h-16 w-16 object-cover rounded-md"
-                        />
-                        <div className="flex-1">
-                          <h4 className="font-medium">{product.name}</h4>
-                          <p className="text-primary font-semibold">
-                            R$ {product.price.toFixed(2).replace('.', ',')}
-                          </p>
+                      <div key={product.id} className="flex items-center justify-between p-4 bg-accent/30 rounded-lg">
+                        <div>
+                          <h4 className="font-semibold">{product.name}</h4>
+                          <p className="text-sweet-pink font-bold">R$ {product.price.toFixed(2)}</p>
                         </div>
-                        <Button variant="cart" size="sm">
+                        <Button variant="sweet" size="sm">
                           Comprar
                         </Button>
                       </div>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, ShoppingCart, Heart, User, HelpCircle } from 'lucide-react';
+import { Search, ShoppingCart, Heart, User, HelpCircle, Mic, Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -48,13 +48,38 @@ export function Header({
                 placeholder="Buscar doces..."
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
-                className="pl-10 bg-accent/30 border-accent focus:border-secondary"
+                className="pl-10 pr-10 bg-accent/30 border-accent focus:border-secondary"
               />
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8 hover:bg-accent/50"
+              >
+                <Mic className="h-4 w-4 text-muted-foreground" />
+              </Button>
             </div>
           </div>
 
           {/* Navigation Icons */}
           <div className="flex items-center space-x-2">
+            {/* Language Selector */}
+            <div className="hidden md:flex items-center space-x-1 mr-2">
+              <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-accent/50">
+                <span className="text-lg">🇧🇷</span>
+              </Button>
+              <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-accent/50">
+                <span className="text-lg">🇺🇸</span>
+              </Button>
+              <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-accent/50">
+                <span className="text-lg">🇪🇸</span>
+              </Button>
+            </div>
+
+            {/* Theme Toggle */}
+            <Button variant="ghost" size="icon" className="hover:bg-accent/50">
+              <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+              <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+            </Button>
             {/* Cart */}
             <Button 
               variant="ghost" 
@@ -105,8 +130,15 @@ export function Header({
               placeholder="Buscar doces..."
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="pl-10 bg-accent/30 border-accent focus:border-secondary"
+              className="pl-10 pr-10 bg-accent/30 border-accent focus:border-secondary"
             />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8 hover:bg-accent/50"
+            >
+              <Mic className="h-4 w-4 text-muted-foreground" />
+            </Button>
           </div>
         </div>
       </div>
