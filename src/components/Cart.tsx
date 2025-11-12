@@ -1,9 +1,10 @@
-import React from 'react';
-import { ShoppingCart, X, Minus, Plus, Trash2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { ShoppingCart, X, Minus, Plus, Trash2, CreditCard, Smartphone, Landmark, QrCode, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { useToast } from '@/hooks/use-toast';
 
 export interface CartItem {
   id: string;
@@ -22,17 +23,55 @@ interface CartProps {
 }
 
 export function Cart({ isOpen, onClose, items, onUpdateQuantity, onRemoveItem }: CartProps) {
+  const [showPayment, setShowPayment] = useState(false);
+  const [selectedPayment, setSelectedPayment] = useState<string>('');
+  const { toast } = useToast();
   const total = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+
+  const paymentMethods = [
+    { id: 'pix', name: 'PIX', icon: QrCode, description: 'Pagamento instantâneo' },
+    { id: 'credit', name: 'Cartão de Crédito', icon: CreditCard, description: 'Até 12x sem juros' },
+    { id: 'debit', name: 'Cartão de Débito', icon: Smartphone, description: 'À vista' },
+    { id: 'boleto', name: 'Boleto', icon: Landmark, description: 'Vencimento em 3 dias' }
+  ];
+
+  const handleFinalizePurchase = () => {
+    if (selectedPayment) {
+      const method = paymentMethods.find(m => m.id === selectedPayment);
+      toast({
+        title: "Pedido confirmado!",
+        description: `Pagamento via ${method?.name} será processado.`,
+      });
+      setShowPayment(false);
+      setSelectedPayment('');
+      onClose();
+    }
+  };
+
+  const handleBack = () => {
+    setShowPayment(false);
+    setSelectedPayment('');
+  };
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent className="w-full sm:max-w-md">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
+            {showPayment && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 -ml-2"
+                onClick={handleBack}
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+            )}
             <ShoppingCart className="h-5 w-5 text-primary" />
-            Carrinho de Compras
-            {itemCount > 0 && (
+            {showPayment ? 'Método de Pagamento' : 'Carrinho de Compras'}
+            {!showPayment && itemCount > 0 && (
               <Badge className="bg-primary text-primary-foreground">
                 {itemCount} {itemCount === 1 ? 'item' : 'itens'}
               </Badge>
@@ -41,7 +80,49 @@ export function Cart({ isOpen, onClose, items, onUpdateQuantity, onRemoveItem }:
         </SheetHeader>
 
         <div className="mt-6 flex-1 overflow-y-auto">
-          {items.length === 0 ? (
+          {showPayment ? (
+            <div className="space-y-4">
+              <p className="text-muted-foreground mb-6">
+                Escolha o método de pagamento preferido:
+              </p>
+              
+              {paymentMethods.map((method) => {
+                const Icon = method.icon;
+                return (
+                  <button
+                    key={method.id}
+                    onClick={() => setSelectedPayment(method.id)}
+                    className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
+                      selectedPayment === method.id
+                        ? 'border-primary bg-primary/5'
+                        : 'border-border hover:border-primary/50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 rounded-lg ${
+                        selectedPayment === method.id
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-muted'
+                      }`}>
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-semibold">{method.name}</h4>
+                        <p className="text-sm text-muted-foreground">
+                          {method.description}
+                        </p>
+                      </div>
+                      {selectedPayment === method.id && (
+                        <div className="h-5 w-5 rounded-full bg-primary flex items-center justify-center">
+                          <div className="h-2 w-2 rounded-full bg-white"></div>
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          ) : items.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <div className="bg-muted rounded-full p-4 mb-4">
                 <ShoppingCart className="h-12 w-12 text-muted-foreground" />
@@ -124,29 +205,50 @@ export function Cart({ isOpen, onClose, items, onUpdateQuantity, onRemoveItem }:
               </span>
             </div>
 
-            <div className="space-y-2">
-              <Button 
-                variant="sweet" 
-                size="lg" 
-                className="w-full"
-                onClick={() => {
-                  // Finalizar compra - placeholder
-                  alert('Funcionalidade de pagamento será implementada com Supabase!');
-                }}
-              >
-                <ShoppingCart className="h-4 w-4 mr-2" />
-                Finalizar Compra
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                size="lg" 
-                className="w-full"
-                onClick={onClose}
-              >
-                Continuar Comprando
-              </Button>
-            </div>
+            {showPayment ? (
+              <div className="space-y-2">
+                <Button 
+                  variant="sweet" 
+                  size="lg" 
+                  className="w-full"
+                  disabled={!selectedPayment}
+                  onClick={handleFinalizePurchase}
+                >
+                  <ShoppingCart className="h-4 w-4 mr-2" />
+                  Confirmar Pedido
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  className="w-full"
+                  onClick={handleBack}
+                >
+                  Voltar ao Carrinho
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <Button 
+                  variant="sweet" 
+                  size="lg" 
+                  className="w-full"
+                  onClick={() => setShowPayment(true)}
+                >
+                  <ShoppingCart className="h-4 w-4 mr-2" />
+                  Finalizar Compra
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  className="w-full"
+                  onClick={onClose}
+                >
+                  Continuar Comprando
+                </Button>
+              </div>
+            )}
           </div>
         )}
       </SheetContent>
